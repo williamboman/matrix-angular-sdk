@@ -229,7 +229,7 @@ function($http, $window, $timeout, $q, $interval) {
     };
     
     // NB. Despite it's name, this is used only for registering, not logging in.
-    var doRegisterLogin = function(path, data, params, loginType, sessionId, userName, password, threepidCreds, captchaResponse) {
+    var doRegisterLogin = function(path, data, params, loginType, sessionId, userName, password, threepidCreds, captchaResponse, mac) {
         var data = $.extend({}, data)
         var auth = {};
         if (loginType === "m.login.recaptcha") {
@@ -252,7 +252,7 @@ function($http, $window, $timeout, $q, $interval) {
         else if (loginType === "m.login.dummy") {
             auth = {}
         }
-        
+
         if (sessionId) {
             auth.session = sessionId;
         }
@@ -275,7 +275,7 @@ function($http, $window, $timeout, $q, $interval) {
         },
 
         // Register a user
-        register: function(user_name, password, threepidCreds, captchaResponse, sessionId, bindEmail) {
+        register: function(user_name, password, threepidCreds, captchaResponse, sessionId, bindEmail, mac) {
             // registration is composed of multiple requests, to check you can
             // register, then to actually register. This deferred will fire when
             // all the requests are done, along with the final response.
@@ -409,7 +409,7 @@ function($http, $window, $timeout, $q, $interval) {
                             });
                             return;
                         }
-                        return doRegisterLogin(path, data, params, currentStage, sessionId, user_name, password, threepidCreds, captchaResponse).then(
+                        return doRegisterLogin(path, data, params, currentStage, sessionId, user_name, password, threepidCreds, captchaResponse, mac).then(
                             loginResponseFunc,
                             loginResponseFunc
                         );
@@ -422,7 +422,7 @@ function($http, $window, $timeout, $q, $interval) {
                     }
                 };
 
-                doRegisterLogin(path, data, params, currentStage, sessionId, user_name, password, threepidCreds, captchaResponse).then(
+                doRegisterLogin(path, data, params, currentStage, sessionId, user_name, password, threepidCreds, captchaResponse, mac).then(
                     loginResponseFunc,
                     loginResponseFunc
                 );
