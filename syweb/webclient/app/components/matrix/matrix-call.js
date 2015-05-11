@@ -71,7 +71,7 @@ function MatrixCallFactory(webRtcService, matrixService, matrixPhoneService, mod
         }, function(error) {
             console.log("Failed to get TURN URIs");
             MatrixCall.turnServer = {};
-            $timeout(MatrixCall.getTurnServer, 60000);
+            $interval(MatrixCall.getTurnServer, 60000, 1);
         });
     }
 
@@ -160,7 +160,7 @@ function MatrixCallFactory(webRtcService, matrixService, matrixPhoneService, mod
 
         var self = this;
         if (event.age) {
-            $timeout(function() {
+            $interval(function() {
                 if (self.state == 'ringing') {
                     self.state = 'ended';
                     self.hangupParty = 'remote'; // effectively
@@ -168,7 +168,7 @@ function MatrixCallFactory(webRtcService, matrixService, matrixPhoneService, mod
                     if (self.peerConn.signalingState != 'closed') self.peerConn.close();
                     if (self.onHangup) self.onHangup(self);
                 }
-            }, this.msg.lifetime - event.age);
+            }, this.msg.lifetime - event.age, 1);
         }
     };
 
@@ -576,16 +576,16 @@ function MatrixCallFactory(webRtcService, matrixService, matrixPhoneService, mod
         console.log("Failed to send event of type "+ev.type+". Retrying in "+delayMs+"ms");
         ++ev.tries;
         var self = this;
-        $timeout(function() {
+        $interval(function() {
             matrixService.sendEvent(self.room_id, ev.type, undefined, ev.content).then(self.eventSent, function(error) { self.eventSendFailed(ev, error); } );
-        }, delayMs);
+        }, delayMs, 1);
     };
 
     // Sends candidates with are sent in a special way because we try to amalgamate them into one message
     MatrixCall.prototype.sendCandidate = function(content) {
         this.candidateSendQueue.push(content);
         var self = this;
-        if (this.candidateSendTries == 0) $timeout(function() { self.sendCandidateQueue(); }, 100);
+        if (this.candidateSendTries == 0) $interval(function() { self.sendCandidateQueue(); }, 100, 1);
     };
 
     MatrixCall.prototype.sendCandidateQueue = function(content) {
