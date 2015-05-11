@@ -21,8 +21,8 @@ This service manages notifications: enabling, creating and showing them. This
 also contains 'bing word' logic.
 */
 angular.module('notificationService', [])
-.factory('notificationService', ['$timeout', '$q', '$rootScope', 'matrixService', 'modelService', 'mPresence', 'mUserDisplayNameFilter', 'mRoomNameFilter',
-function($timeout, $q, $rootScope, matrixService, modelService, mPresence, mUserDisplayNameFilter, mRoomNameFilter) {
+.factory('notificationService', ['$timeout', '$q', '$rootScope', 'matrixService', 'modelService', 'mPresence', 'mUserDisplayNameFilter', 'mRoomNameFilter', '$interval',
+function($timeout, $q, $rootScope, matrixService, modelService, mPresence, mUserDisplayNameFilter, mRoomNameFilter, $interval) {
 
     var getLocalPartFromUserId = function(user_id) {
         if (!user_id) {
@@ -312,12 +312,12 @@ function($timeout, $q, $rootScope, matrixService, modelService, mPresence, mUser
             audioClip = playAudio(audioNotification);
         }
 
-        $timeout(function() {
+        $interval(function() {
             notification.close();
             if (audioClip) {
                 audioClip.pause();
             }
-        }, 5 * 1000);
+        }, 5 * 1000, 1);
     };
     
 

@@ -173,9 +173,9 @@ angular.module('eventStreamService', [])
             },
             function(error) {
                 console.error("[EventStream] initialSync failed, retrying...");
-                $timeout(function() {
+                $interval(function() {
                     startEventStream(deferred);
-                }, ERR_TIMEOUT_MS);
+                }, ERR_TIMEOUT_MS, 1);
             }
         );
 

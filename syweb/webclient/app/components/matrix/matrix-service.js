@@ -23,8 +23,8 @@ This serves to isolate the caller from changes to the underlying url paths, as
 well as attach common params (e.g. access_token) to requests.
 */
 angular.module('matrixService', [])
-.factory('matrixService', ['$http', '$window', '$timeout', '$q', 
-function($http, $window, $timeout, $q) {
+.factory('matrixService', ['$http', '$window', '$timeout', '$q', '$interval',
+function($http, $window, $timeout, $q, $interval) {
         
    /* 
     * Permanent storage of user information
@@ -216,7 +216,7 @@ function($http, $window, $timeout, $q) {
         var retryAfterMs = error.data.retry_after_ms;
         console.log("Rate limited. Waiting "+retryAfterMs+"ms. Already waited "+
                     timeWaiting+"ms.");
-        $timeout(function() {
+        $interval(function() {
             console.log("Waited "+retryAfterMs+"ms, retrying request.");
             $http(request).then(function(response) {
                 defer.resolve(response);
@@ -225,7 +225,7 @@ function($http, $window, $timeout, $q) {
                 timeWaiting += retryAfterMs;
                 handleRateLimit(defer, request, err, timeWaiting);
             });
-        }, retryAfterMs);
+        }, retryAfterMs, 1);
     };
     
     // NB. Despite it's name, this is used only for registering, not logging in.
