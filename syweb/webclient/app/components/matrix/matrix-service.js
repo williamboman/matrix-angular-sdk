@@ -256,6 +256,25 @@ function($http, $window, $timeout, $q, $interval) {
         if (sessionId) {
             auth.session = sessionId;
         }
+
+        // Can't register with secret token on v2, this is hack to make it work
+        // with v1
+        if (mac) {
+          auth = {
+            user: userName,
+            password: password,
+            mac: mac
+          };
+
+          loginType = "org.matrix.login.shared_secret";
+          auth.type = loginType;
+
+          delete auth.session;
+
+          console.log("doRegisterLogin >>> " + loginType);
+          return doRequest("POST", path, undefined, auth);
+        }
+
         auth.type = loginType;
         data.auth = auth;
         console.log("doRegisterLogin >>> " + loginType);
