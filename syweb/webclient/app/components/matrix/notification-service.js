@@ -24,6 +24,8 @@ angular.module('notificationService', [])
 .factory('notificationService', ['$timeout', '$q', '$rootScope', 'matrixService', 'modelService', 'mPresence', 'mUserDisplayNameFilter', 'mRoomNameFilter', '$interval',
 function($timeout, $q, $rootScope, matrixService, modelService, mPresence, mUserDisplayNameFilter, mRoomNameFilter, $interval) {
 
+    var notificationClickListener = angular.noop;
+
     var getLocalPartFromUserId = function(user_id) {
         if (!user_id) {
             return null;
@@ -495,27 +497,27 @@ function($timeout, $q, $rootScope, matrixService, modelService, mPresence, mUser
                     } else {
                         notificationTitle = displayname + " (" + roomTitle + ")";
                     }
-                    
+
                     showNotification(
                         notificationTitle,
                         message,
                         avatarUrl,
-                        function() {
-                            console.log("notification.onclick() room=" + ev.room_id);
-                            $rootScope.goToPage('room/' + ev.room_id); 
-                        },
+                        notificationClickListener.bind(null, ev.room_id),
                         undefined,
                         audio
                     );
                 }
             });
         },
-        
+
         showNotification : showNotification,
+
+        setClickListener: function (fn) {
+          notificationClickListener = fn;
+        }
     };
     if (matrixService.isUserLoggedIn()) {
         self.getRulesets();
     }
     return self;
 }]);
-
