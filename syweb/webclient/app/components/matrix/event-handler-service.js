@@ -501,7 +501,7 @@ function(matrixService, $rootScope, $window, $q, $filter, mPresence, notificatio
                               input);
 
             var isEmote = input.indexOf("/me ") === 0;
-            var isMarkdown = input.indexOf("/markdown ") === 0;
+            var isMarkdown = /^\/markdown(\s*|\s+.*)$/m.test(input);
             var promise;
             if (!isEmote && !isMarkdown) {
                 promise = commandsService.processInput(roomId, input);
