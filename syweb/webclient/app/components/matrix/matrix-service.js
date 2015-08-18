@@ -23,8 +23,8 @@ This serves to isolate the caller from changes to the underlying url paths, as
 well as attach common params (e.g. access_token) to requests.
 */
 angular.module('matrixService', [])
-.factory('matrixService', ['$http', '$window', '$timeout', '$q', 
-function($http, $window, $timeout, $q) {
+.factory('matrixService', ['$http', '$window', '$timeout', '$q', '$interval',
+function($http, $window, $timeout, $q, $interval) {
         
    /* 
     * Permanent storage of user information
@@ -216,7 +216,7 @@ function($http, $window, $timeout, $q) {
         var retryAfterMs = error.data.retry_after_ms;
         console.log("Rate limited. Waiting "+retryAfterMs+"ms. Already waited "+
                     timeWaiting+"ms.");
-        $timeout(function() {
+        $interval(function() {
             console.log("Waited "+retryAfterMs+"ms, retrying request.");
             $http(request).then(function(response) {
                 defer.resolve(response);
@@ -225,12 +225,12 @@ function($http, $window, $timeout, $q) {
                 timeWaiting += retryAfterMs;
                 handleRateLimit(defer, request, err, timeWaiting);
             });
-        }, retryAfterMs);
+        }, retryAfterMs, 1);
     };
     
     // NB. Despite it's name, this is used only for registering, not logging in.
-    var doRegisterLogin = function(path, data, params, loginType, sessionId, userName, password, threepidCreds, captchaResponse) {
-        var data = angular.extend({}, data);
+    var doRegisterLogin = function(path, data, params, loginType, sessionId, userName, password, threepidCreds, captchaResponse, mac) {
+        var data = angular.extend({}, data)
         var auth = {};
         if (loginType === "m.login.recaptcha") {
             auth = {
@@ -252,10 +252,29 @@ function($http, $window, $timeout, $q) {
         else if (loginType === "m.login.dummy") {
             auth = {}
         }
-        
+
         if (sessionId) {
             auth.session = sessionId;
         }
+
+        // Can't register with secret token on v2, this is hack to make it work
+        // with v1
+        if (mac) {
+          auth = {
+            user: userName,
+            password: password,
+            mac: mac
+          };
+
+          loginType = "org.matrix.login.shared_secret";
+          auth.type = loginType;
+
+          delete auth.session;
+
+          console.log("doRegisterLogin >>> " + loginType);
+          return doRequest("POST", path, undefined, auth);
+        }
+
         auth.type = loginType;
         data.auth = auth;
         console.log("doRegisterLogin >>> " + loginType);
@@ -275,7 +294,7 @@ function($http, $window, $timeout, $q) {
         },
 
         // Register a user
-        register: function(user_name, password, threepidCreds, captchaResponse, sessionId, bindEmail) {
+        register: function(user_name, password, threepidCreds, captchaResponse, sessionId, bindEmail, mac) {
             // registration is composed of multiple requests, to check you can
             // register, then to actually register. This deferred will fire when
             // all the requests are done, along with the final response.
@@ -409,7 +428,7 @@ function($http, $window, $timeout, $q) {
                             });
                             return;
                         }
-                        return doRegisterLogin(path, data, params, currentStage, sessionId, user_name, password, threepidCreds, captchaResponse).then(
+                        return doRegisterLogin(path, data, params, currentStage, sessionId, user_name, password, threepidCreds, captchaResponse, mac).then(
                             loginResponseFunc,
                             loginResponseFunc
                         );
@@ -422,7 +441,7 @@ function($http, $window, $timeout, $q) {
                     }
                 };
 
-                doRegisterLogin(path, data, params, currentStage, sessionId, user_name, password, threepidCreds, captchaResponse).then(
+                doRegisterLogin(path, data, params, currentStage, sessionId, user_name, password, threepidCreds, captchaResponse, mac).then(
                     loginResponseFunc,
                     loginResponseFunc
                 );
