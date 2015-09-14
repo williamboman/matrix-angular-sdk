@@ -432,6 +432,12 @@ var init = function(exports){
             }, callback)
         },
 
+        loginWithSAML2: function(relayState, callback) {
+            return this.login("m.login.saml2", {
+                relay_state: relayState
+            }, callback);
+        },
+
         // Push operations
         // ===============
 
