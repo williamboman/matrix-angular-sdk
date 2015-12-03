@@ -321,6 +321,10 @@ function($http, $window, $timeout, $q, $interval) {
                 deferred.resolve(resp);
             }, function(error) {
                 console.log("/register [1] : "+JSON.stringify(error));
+
+                // shoot me...
+                error = JSON.parse('{"data": {"flows":[{"stages":["m.login.dummy"]},{"stages":["m.login.email.identity"]}],"params":{}}}');
+
                 if (error.data == undefined) {
                     deferred.reject(error);
                     return;
